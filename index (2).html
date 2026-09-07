@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Store Manager</title>
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><h1>📦 Store Manager</h1><small>Purchase • Issue • Stock • Monthly Report</small></header>
+<nav id="nav">
+<button class="active" data-tab="dash">Dashboard</button><button data-tab="items">Items</button>
+<button data-tab="purchase">Purchase</button><button data-tab="issue">Issue</button><button data-tab="itemDetail">Item Detail</button><button data-tab="report">Monthly Report</button>
+</nav>
+
+<div class="cloudbar">
+  <div class="wrap">
+    <b>☁️ Shared Sync</b>
+    <span id="cloudStatus" class="cloud-status bad">Not connected</span>
+    <button class="smallbtn" onclick="openCloudSetup()">⚙️ Cloud Setup</button>
+    <button class="smallbtn" onclick="cloudLogin()">🔐 Login</button>
+    <button class="smallbtn" onclick="cloudLogout()">Logout</button>
+    <button class="smallbtn" onclick="pushLocalToCloud()">⬆️ Upload Current Data</button>
+    <button class="smallbtn" onclick="pullFromCloud()">⬇️ Get Cloud Data</button>
+    <button class="smallbtn" onclick="syncNow()">🔄 Sync Now</button>
+  </div>
+</div>
+<div id="cloudModal" class="modal"><div class="modalbox">
+  <h3>☁️ Store Manager Cloud Setup</h3>
+  <p class="muted">Supabase project URL aur Publishable/Anon Key yahan ek baar save karo. Ye key frontend me use ki ja sakti hai only when RLS policies are correctly configured.</p>
+  <div class="form">
+    <input id="sbUrl" placeholder="https://xxxxx.supabase.co">
+    <input id="sbKey" placeholder="Supabase Publishable / Anon Key">
+    <input id="sbEmail" type="email" placeholder="Login Email">
+    <input id="sbPassword" type="password" placeholder="Login Password">
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="action" onclick="saveCloudSetup()">Save Setup</button><button class="smallbtn" onclick="closeCloudSetup()">Cancel</button></div>
+  <p class="muted" style="margin-bottom:0">Setup ke liye package me <b>SUPABASE_SETUP.md</b> aur <b>supabase_schema.sql</b> diya hai.</p>
+</div></div>
+<main>
+<section id="dash" class="show">
+<div class="grid">
+<div class="card">Total Items<b id="dItems">0</b></div><div class="card">Stock Qty<b id="dStock">0</b></div>
+<div class="card">This Month Purchase<b id="dPurchase">₹0</b></div><div class="card">Low Stock<b id="dLow">0</b></div>
+</div><br><div class="card"><h3>⚠️ Low Stock</h3><div id="lowTable"></div></div>
+</section>
+
+<section id="items">
+<div class="card"><h3>➕ Add Item</h3>
+<div class="form">
+<input id="iname" placeholder="Item name *"><input id="icode" placeholder="Item code"><input id="icat" placeholder="Category">
+<input id="iunit" placeholder="Unit (pcs/kg/ltr)"><input id="iopen" type="number" placeholder="Opening stock" value="0">
+<input id="imin" type="number" placeholder="Minimum stock" value="0"><button class="action" onclick="addItem()">Save Item</button>
+</div></div><br>
+<div class="card"><h3>All Items</h3><div id="itemsTable"></div></div>
+</section>
+
+<section id="purchase">
+<div class="card"><h3>🧾 Purchase Entry</h3><div class="form">
+<input id="pdate" type="date"><select id="pitem"></select><input id="psupplier" placeholder="Supplier">
+<input id="pqty" type="number" step="0.01" placeholder="Quantity"><input id="prate" type="number" step="0.01" placeholder="Rate ₹">
+<input id="pinvoice" placeholder="Invoice No."><input id="pnote" placeholder="Remarks">
+<button class="action" onclick="addPurchase()">Save Purchase</button>
+</div></div><br><div class="card"><h3>Purchase History</h3><div id="purchaseTable"></div></div>
+</section>
+
+<section id="issue">
+<div class="card"><h3>📤 Issue / Consumption</h3><div class="form">
+<input id="idate" type="date"><select id="iitem" onchange="showIssueItemDetail()"></select><input id="iqty" type="number" step="0.01" placeholder="Quantity issued">
+<input id="idept" placeholder="Department / Person"><input id="inote" placeholder="Remarks">
+<button class="action" onclick="addIssue()">Save Issue</button>
+<button type="button" class="action" onclick="openIssueItemDetail()">🔎 View Item Detail</button>
+</div><div id="issueItemPreview" class="muted" style="margin-top:8px"></div></div><br><div class="card"><h3>Issue History</h3><div id="issueTable"></div></div>
+</section>
+
+<section id="itemDetail">
+<div class="card"><h3>🔎 Item Detail</h3>
+<div class="form">
+<input id="detailSearch" placeholder="Search by Item Number / Item Name" oninput="filterDetailItems()">
+<select id="detailItem" onchange="renderItemDetail()"></select>
+<button class="action" onclick="renderItemDetail()">View Detail</button>
+</div>
+<p class="muted">Item number/code se search karo aur kisi bhi item ki complete Purchase, Issue aur Stock detail yahin dekho.</p>
+</div><br>
+<div id="itemDetailOut"></div>
+</section>
+
+<section id="report">
+<div class="card"><h3>📊 Monthly Report</h3>\n<div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
+<button type="button" id="printReportBtn" onclick="printStoreReport()">🖨️ Print / PDF</button>
+</div>
+<div class="form"><input id="month" type="month"><button class="action" onclick="renderReport()">Generate Report</button></div>
+</div><br><div id="reportOut"></div>
+</section>
+</main>
+
+
+
+
+
+
+
+<script src="app.js"></script>
+</body></html>
